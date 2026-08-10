@@ -12,7 +12,7 @@ class DirView extends HTMLElement {
       console.error('Invalid JSON provided to items attribute:', e);
     }
 
-    // Extract path segments from window.location.pathname
+    // Extract non-empty path segments from URL
     // e.g., "/files/comunica/" -> ["files", "comunica"]
     const segments = window.location.pathname
       .split('/')
@@ -20,24 +20,21 @@ class DirView extends HTMLElement {
 
     let headerHTML = '';
 
-    if (segments.length === 0) {
-      // We are at the actual root page "/"
-      headerHTML = `<span class="current-dir">root</span>`;
+    if (segments.length <= 1) {
+      // We are at the repo root
+      const rootName = segments.length === 1 ? segments[0] : 'root';
+      headerHTML = `<span class="current-dir">${rootName}</span>`;
     } else {
       const currentDir = segments[segments.length - 1];
       const parentSegments = segments.slice(0, -1);
 
-      // Root parent calculation: total depth needed to reach "/"
-      const rootDepth = segments.length;
-      const rootLink = `<a href="${'../'.repeat(rootDepth)}">root</a><span class="separator">/</span>`;
-
-      // Intermediate parents calculation (e.g., "files")
+      // Dynamically build relative links
       const parentBreadcrumbs = parentSegments.map((name, index) => {
         const depth = segments.length - (index + 1);
         return `<a href="${'../'.repeat(depth)}">${name}</a><span class="separator">/</span>`;
       }).join('');
 
-      headerHTML = `${rootLink}${parentBreadcrumbs}<span class="current-dir">${currentDir}</span>`;
+      headerHTML = `${parentBreadcrumbs}<span class="current-dir">${currentDir}</span>`;
     }
 
     this.shadowRoot.innerHTML = `
